@@ -1,4 +1,5 @@
 using System;
+using DefaultNamespace;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
@@ -12,20 +13,18 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Animator animator;
     [SerializeField] private CapsuleCollider2D capsuleCollider;
     [SerializeField] private BoxCollider2D boxCollider2D;
-    [SerializeField] private AnimationClip animationClip;
-
+    [SerializeField] private Bullet bulletPrefab;
 
     private Vector2 moveInput = new Vector2();
     private float baseGravity;
     private float animationSpeed;
-    
+    private bool isAlive = true;
 
 
     private void Awake()
     {
         baseGravity = rb.gravityScale;
-        animationSpeed = animator.speed ;
-
+        animationSpeed = animator.speed;
     }
 
 
@@ -38,6 +37,8 @@ public class PlayerController : MonoBehaviour
 
     private void Run()
     {
+        if (!isAlive)
+            return;
         rb.linearVelocity = new Vector2(moveInput.x * horizontalSpeed, rb.linearVelocity.y);
 
         if (Mathf.Abs(rb.linearVelocity.x) > Mathf.Epsilon)
@@ -60,12 +61,16 @@ public class PlayerController : MonoBehaviour
 
     private void OnMove(InputValue value)
     {
+        if (!isAlive)
+            return;
         moveInput = value.Get<Vector2>();
         Debug.Log(Mathf.Sign(moveInput.x));
     }
 
     private void OnJump(InputValue value)
     {
+        if (!isAlive)
+            return;
         var groundLayer = LayerMask.GetMask("Ground");
         var isGrounded = boxCollider2D.IsTouchingLayers(groundLayer);
 
@@ -80,8 +85,19 @@ public class PlayerController : MonoBehaviour
     }
 
 
+    private void Die()
+    {
+        isAlive = false;
+        animator.SetBool("Die", true);
+        rb.linearVelocity = new Vector2(5, 10);
+    }
+
+
     private void Climbing()
     {
+        if (!isAlive)
+            return;
+
         var laderLayer = LayerMask.GetMask("Lader");
         var isTouchingLayer = capsuleCollider.IsTouchingLayers(laderLayer);
 
@@ -113,5 +129,20 @@ public class PlayerController : MonoBehaviour
 
         rb.gravityScale = 0;
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, moveInput.y * verticalSpeed);
+    }
+
+    private void OnAttack(InputValue value)
+    {
+        var bullet = Instantiate(bulletPrefab, transform.localPosition, Quaternion.identity);
+        // var bullet = bulletGameObject.GetComponent<Bullet>();
+        bullet.Setup(this);
+    }
+
+    private void OnCollisionEnter2D(Collision2D other)
+    {
+        if (capsuleCollider.IsTouchingLayers(LayerMask.GetMask("Enemy")))
+        {
+            Die();
+        }
     }
 }

@@ -15,9 +15,9 @@ TagManager:
   - Player
   - Lader
   - Mushroom
-  - 
-  - 
-  - 
+  - Enemy
+  - Background
+  - Bullet
   - 
   - 
   - 
@@ -52,6 +52,12 @@ TagManager:
     locked: 0
   - name: Mushroom
     uniqueID: 3130459973
+    locked: 0
+  - name: Enemy
+    uniqueID: 2326299581
+    locked: 0
+  - name: Bullet
+    uniqueID: 562176751
     locked: 0
   - name: Player
     uniqueID: 2022642911
